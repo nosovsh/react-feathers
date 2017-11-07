@@ -1,6 +1,6 @@
 {
   "name": "react-feathers",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "React bindings for feathers",
   "main": "dist/index.js",
   "peerDependencies": {
