@@ -1,4 +1,4 @@
-import {LOAD, LOAD_FAILURE, LOAD_SUCCESS} from '../constants';
+import {LOAD, LOAD_FAILURE, LOAD_SUCCESS, SET_ENTITY, SET_ENTITIES} from '../constants';
 import {combineReducers} from 'redux';
 
 const query = (state = {
@@ -50,7 +50,45 @@ const queries = (state = {}, action) => {
   }
 }
 
+const entity = (state = {
+  data: {}
+}, action) => {
+  switch (action.type) {
+    case SET_ENTITY:
+      return {
+        ...state,
+        data: action.entity // TODO: deep merge?
+      }
+  }
+}
+
+const entities = (state = {}, action) => {
+  switch (action.type) {
+    case SET_ENTITY:
+      return {
+        ...state,
+        [action.entityKey]: entity(state[action.entityKey], action),
+      };
+
+    case SET_ENTITIES:
+      const updatedEntities = {};
+      action.entitiesWithKeys.map(entitityWithKey => {
+        updatedEntities[entitityWithKey.entityKey] = entity(state[entitityWithKey.entityKey], {
+          type: SET_ENTITY,
+          entity: entitityWithKey.entity
+        })
+      })
+      return {
+        ...state,
+        ...updatedEntities,
+      };
+
+    default:
+      return state;
+  }
+}
+
 export default combineReducers({
   queries,
-  // items:
+  entities,
 });
