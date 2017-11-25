@@ -1,12 +1,13 @@
 import React from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
+import {getRequestKey, getEntityKey} from '../utils';
 
 export default (hocParams = {}) => (Component) => {
   class FeathersConnect extends React.Component {
     render() {
       const {feathers: {services}} = this.context;
-      const { method, service} = this.props;
+      const {method, service, dispatch} = this.props;
 
       const fn = (...args) => {
         console.log(`Executing ${service}.${method} mutation with parameters:`, ...args)
@@ -15,7 +16,19 @@ export default (hocParams = {}) => (Component) => {
             console.log(`Successful ${service}.${method} mutation with result:`, result)
             return result;
           })
-          .catch(err => {
+          .then(result => {
+
+            const entityKey = getEntityKey(service, result._id)
+            dispatch({
+              type: 'SET_ENTITY',
+              entityKey,
+              entity: result,
+            });
+
+            // TODO: return result only when dispatch finished
+            return result
+          })
+          .catch(err => { // TODO: wrong place for catch
             console.log(`Unsuccessful ${service}.${method} mutation with result:`, err)
             throw err;
           })
@@ -43,11 +56,9 @@ export default (hocParams = {}) => (Component) => {
     }
   };
 
-  const mapDispatchToProps = (dispatch, {service, method}) => {
-    return {
-    }
-  }
-
+  const mapDispatchToProps = (dispatch) => ({
+    dispatch,
+  });
 
   return connect(mapStateToProps, mapDispatchToProps)(FeathersConnect);
 };
