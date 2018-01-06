@@ -3,11 +3,15 @@ import PropTypes from 'prop-types';
 
 class FeathersProvider extends React.Component {
   getChildContext() {
-    const {services} = this.props;
+    const {
+      services,
+      dataIdFromObject,
+    } = this.props;
 
     return {
       feathers: {
-        services
+        services,
+        dataIdFromObject,
       },
     };
   }
@@ -24,6 +28,10 @@ FeathersProvider.childContextTypes = {
 
 FeathersProvider.propTypes = {
   services: PropTypes.object
+};
+
+FeathersProvider.defaultPropTypes = {
+  dataIdFromObject: obj => undefined
 };
 
 export default FeathersProvider;

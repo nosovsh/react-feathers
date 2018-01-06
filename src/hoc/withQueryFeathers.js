@@ -8,7 +8,7 @@ export default (hocParams = {}) => (Component) => {
   class FeathersConnect extends React.Component {
     dispatchServiceActions = () => {
       const {service, method, params, dispatch, id} = this.props;
-      const {feathers: {services}} = this.context;
+      const {feathers: {services, dataIdFromObject}} = this.context;
       let methodParams;
 
       if (typeof params === 'function') {
@@ -17,7 +17,14 @@ export default (hocParams = {}) => (Component) => {
         methodParams = params;
       }
 
-      const requestKey = getRequestKey(service, method, id, methodParams)
+      let realId; 
+      if (typeof id === 'function') {
+        realId = id(this.props);
+      } else {
+        realId = id;
+      }
+
+      const requestKey = getRequestKey(service, method, realId, methodParams)
       dispatch({
         type: 'LOAD',
         requestKey,
@@ -29,7 +36,7 @@ export default (hocParams = {}) => (Component) => {
           .then((result) => {
             // updatedResult = {$$id: entityKey}
             const entitiesWithKeys = result.data.map(entity => {
-              const entityKey = getEntityKey(service, entity._id);
+              const entityKey = getEntityKey(service, dataIdFromObject(entity));
               return {
                 entityKey,
                 entity,
@@ -44,7 +51,7 @@ export default (hocParams = {}) => (Component) => {
             const convertedResult = {
               ...result,
               data: result.data.map(entity => ({
-                $$id: getEntityKey(service, entity._id)
+                $$id: getEntityKey(service, dataIdFromObject(entity))
               }))
             }
 
@@ -58,9 +65,9 @@ export default (hocParams = {}) => (Component) => {
           })
       } else if (method === 'get') {
         request = request
-          .get(id, {...params}) // feathers is mutating `params`, we don't want it
+          .get(realId, {...params}) // feathers is mutating `params`, we don't want it
           .then(result => {
-            const entityKey = getEntityKey(service, result._id);
+            const entityKey = getEntityKey(service, dataIdFromObject(result));
             dispatch({
               type: 'SET_ENTITY',
               entityKey,
@@ -105,7 +112,14 @@ export default (hocParams = {}) => (Component) => {
       methodParams = params;
     }
 
-    const requestKey = getRequestKey(service, method, id, methodParams)
+    let realId; 
+    if (typeof id === 'function') {
+      realId = id(props);
+    } else {
+      realId = id;
+    }
+
+    const requestKey = getRequestKey(service, method, realId, methodParams)
     const data = get(state, `feathers.queries.${requestKey}`, {});
 
     let convertedData = data;

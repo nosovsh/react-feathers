@@ -46,6 +46,7 @@ ReactDOM.render((
         services={{
           users,
         }}
+        dataIdFromObject={obj => obj._id} /* how to get id from any db object */
       >
         <App />
       </FeathersProvider>
@@ -114,7 +115,7 @@ const App = () => (
 export default withQueryFeathers({
   service: 'users',
   method: 'get',
-  _id: props => user.id, // or plain string
+  id (?): props => user.id, // or plain string
 })(YourComponent);
 ```
 ##### create:
