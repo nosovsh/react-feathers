@@ -6,7 +6,7 @@ import {getRequestKey, getEntityKey} from '../utils';
 export default (hocParams = {}) => (Component) => {
   class FeathersConnect extends React.Component {
     render() {
-      const {feathers: {services}} = this.context;
+      const {feathers: {services, dataIdFromObject}} = this.context;
       const {method, service, dispatch} = this.props;
 
       const fn = (...args) => {
@@ -18,7 +18,7 @@ export default (hocParams = {}) => (Component) => {
           })
           .then(result => {
 
-            const entityKey = getEntityKey(service, result._id)
+            const entityKey = getEntityKey(service, dataIdFromObject(result))
             dispatch({
               type: 'SET_ENTITY',
               entityKey,
