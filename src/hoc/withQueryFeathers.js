@@ -92,7 +92,15 @@ export default (hocParams = {}) => (Component) => {
 
     render() {
       return (
-        <Component {...this.props} />
+        <Component
+          {...this.props}
+          data={{
+            ...this.props.data,
+            refetch: () => {
+              this.dispatchServiceActions();
+            }
+          }}
+        />
       );
     }
   }
