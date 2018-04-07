@@ -32,7 +32,7 @@ export default (hocParams = {}) => (Component) => {
       let request = services[service];
       if (method === 'find') {
         request = request
-          .find({...params}) // feathers is mutating `params`, we don't want it
+          .find({...methodParams}) // feathers is mutating `params`, we don't want it
           .then((result) => {
             // updatedResult = {$$id: entityKey}
             const entitiesWithKeys = result.data.map(entity => {
@@ -111,7 +111,7 @@ export default (hocParams = {}) => (Component) => {
 
 
   const mapStateToProps = (state, props) => {
-    const {service, id, method, params = {}} = hocParams;
+    const {service, id, method, params = {}, name='data'} = hocParams;
     let methodParams;
 
     if (typeof params === 'function') {
@@ -120,7 +120,7 @@ export default (hocParams = {}) => (Component) => {
       methodParams = params;
     }
 
-    let realId; 
+    let realId;
     if (typeof id === 'function') {
       realId = id(props);
     } else {
@@ -169,7 +169,7 @@ export default (hocParams = {}) => (Component) => {
     }
     return {
       ...hocParams,
-      data: convertedData,
+      [name]: convertedData,
     }
   };
 
