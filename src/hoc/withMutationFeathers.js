@@ -7,8 +7,7 @@ export default (hocParams = {}) => (Component) => {
   class FeathersConnect extends React.Component {
     render() {
       const {feathers: {services, dataIdFromObject}} = this.context;
-      const {method, service, dispatch} = this.props;
-
+      const {method, service, dispatch, name} = this.props;
       const fn = (...args) => {
         console.log(`Executing ${service}.${method} mutation with parameters:`, ...args)
         return services[service][method](...args)
@@ -38,7 +37,7 @@ export default (hocParams = {}) => (Component) => {
         <Component
           {...{
             ...this.props,
-            [method]: fn
+            [name || method]: fn
           }}
         />
       );
