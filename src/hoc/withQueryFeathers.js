@@ -1,14 +1,15 @@
 import React from 'react';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import get from 'lodash/get';
-import {getRequestKey, getEntityKey} from '../utils';
+import omit from 'lodash/omit';
+import { getRequestKey, getEntityKey } from '../utils';
 
-export default (hocParams = {}) => (Component) => {
+export default (hocParams) => (Component) => {
   class FeathersConnect extends React.Component {
     dispatchServiceActions = () => {
-      const {service, method, params, dispatch, id} = this.props;
-      const {feathers: {services, dataIdFromObject}} = this.context;
+      const { service, method, params, dispatch, id } = this.props;
+      const { feathers: { services, dataIdFromObject } } = this.context;
       let methodParams;
 
       if (typeof params === 'function') {
@@ -17,7 +18,7 @@ export default (hocParams = {}) => (Component) => {
         methodParams = params;
       }
 
-      let realId; 
+      let realId;
       if (typeof id === 'function') {
         realId = id(this.props);
       } else {
@@ -32,7 +33,7 @@ export default (hocParams = {}) => (Component) => {
       let request = services[service];
       if (method === 'find') {
         request = request
-          .find({...methodParams}) // feathers is mutating `params`, we don't want it
+          .find({ ...methodParams }) // feathers is mutating `params`, we don't want it
           .then((result) => {
             // updatedResult = {$$id: entityKey}
             const entitiesWithKeys = result.data.map(entity => {
@@ -65,7 +66,7 @@ export default (hocParams = {}) => (Component) => {
           })
       } else if (method === 'get') {
         request = request
-          .get(realId, {...params}) // feathers is mutating `params`, we don't want it
+          .get(realId, { ...params }) // feathers is mutating `params`, we don't want it
           .then(result => {
             const entityKey = getEntityKey(service, dataIdFromObject(result));
             dispatch({
@@ -73,7 +74,7 @@ export default (hocParams = {}) => (Component) => {
               entityKey,
               entity: result,
             });
-            const updatedResult = {$$id: entityKey}
+            const updatedResult = { $$id: entityKey }
             dispatch({
               type: 'LOAD_SUCCESS',
               requestKey,
@@ -91,15 +92,25 @@ export default (hocParams = {}) => (Component) => {
     }
 
     render() {
+      const { name = 'data' } = this.props;
+      const dataWithDispatch = {
+        ...this.props[name],
+        refetch: () => {
+          this.dispatchServiceActions();
+        }
+      };
+      const newProps = omit(
+        this.props,
+        [
+          'id',
+          'params',
+          // TODO: add other fields also
+        ]
+      );
+      newProps[name] = dataWithDispatch;
       return (
         <Component
-          {...this.props}
-          data={{
-            ...this.props.data,
-            refetch: () => {
-              this.dispatchServiceActions();
-            }
-          }}
+          {...newProps}
         />
       );
     }
@@ -111,7 +122,7 @@ export default (hocParams = {}) => (Component) => {
 
 
   const mapStateToProps = (state, props) => {
-    const {service, id, method, params = {}, name='data'} = hocParams;
+    const { service, id, method, params = {}, name = 'data' } = hocParams;
     let methodParams;
 
     if (typeof params === 'function') {
